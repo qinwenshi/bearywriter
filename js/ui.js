@@ -10,19 +10,19 @@ ZenPen.ui = (function() {
 
 	// Word Counter
 	var wordCountValue, wordCountBox, wordCountElement, wordCounter, wordCounterProgress;
-	
+
 	//save support
 	var supportsSave, saveFormat, textToWrite;
-	
+
 	var expandScreenIcon = '&#xe000;';
 	var shrinkScreenIcon = '&#xe004;';
 
 	var darkLayout = false;
 
 	function init() {
-		
+
 		supportsSave = !!new Blob()?true:false;
-		
+
 		bindElements();
 
 		wordCountActive = false;
@@ -30,14 +30,14 @@ ZenPen.ui = (function() {
 		if ( ZenPen.util.supportsHtmlStorage() ) {
 			loadState();
 		}
-		
+
 		console.log( "Checkin under the hood eh? We've probably got a lot in common. You should totally check out ZenPen on github! (https://github.com/tholman/zenpen)." );
 	}
 
 	function loadState() {
 
 		// Activate word counter
-		if ( localStorage['wordCount'] && localStorage['wordCount'] !== "0") {			
+		if ( localStorage['wordCount'] && localStorage['wordCount'] !== "0") {
 			wordCountValue = parseInt(localStorage['wordCount']);
 			wordCountElement.value = localStorage['wordCount'];
 			wordCounter.className = "word-counter active";
@@ -75,27 +75,33 @@ ZenPen.ui = (function() {
 		colorLayoutElement = document.querySelector( '.color-flip' );
 		colorLayoutElement.onclick = onColorLayoutClick;
 
-		// UI element for full screen		
+		// UI element for full screen
 		screenSizeElement = document.querySelector( '.fullscreen' );
 		screenSizeElement.onclick = onScreenSizeClick;
 
 		targetElement = document.querySelector( '.target ');
 		targetElement.onclick = onTargetClick;
-		
+
 		//init event listeners only if browser can save
 		if (supportsSave) {
 
 			saveElement = document.querySelector( '.save' );
 			saveElement.onclick = onSaveClick;
-			
+
 			var formatSelectors = document.querySelectorAll( '.saveselection span' );
 			for( var i in formatSelectors ) {
 				formatSelectors[i].onclick = selectFormat;
 			}
-			
+
 			document.querySelector('.savebutton').onclick = saveText;
 		} else {
 			document.querySelector('.save.useicons').style.display = "none";
+		}
+
+		if (firebase) {
+			loadElement = document.querySelector( '.load' );
+			loadElement.onclick = onLoadClick;
+			document.querySelector('.loadbutton').onclick = loadArticle;
 		}
 
 		// Overlay when modals are active
@@ -111,8 +117,11 @@ ZenPen.ui = (function() {
 		wordCountElement.onkeyup = onWordCountKeyUp;
 
 		descriptionModal = overlay.querySelector( '.description' );
-		
+
 		saveModal = overlay.querySelector('.saveoverlay');
+
+		loadModal = overlay.querySelector('.load-from-title');
+		articleTitle = document.querySelector( '.article-title' );
 
 		wordCounter = document.querySelector( '.word-counter' );
 		wordCounterProgress = wordCounter.querySelector( '.progress' );
@@ -132,7 +141,7 @@ ZenPen.ui = (function() {
 				if ( screenfull.isFullscreen ) {
 					screenSizeElement.innerHTML = shrinkScreenIcon;
 				} else {
-					screenSizeElement.innerHTML = expandScreenIcon;	
+					screenSizeElement.innerHTML = expandScreenIcon;
 				}
     		});
     	}
@@ -159,10 +168,24 @@ ZenPen.ui = (function() {
 		overlay.style.display = "block";
 		descriptionModal.style.display = "block";
 	}
-	
+
+	function onLoadClick( event ) {
+		overlay.style.display = "block";
+		loadModal.style.display = "block";
+	}
+
 	function onSaveClick( event ) {
 		overlay.style.display = "block";
 		saveModal.style.display = "block";
+	}
+
+	function loadArticle( event ) {
+		if (articleTitle.value){
+			return firebase.database().ref('/articles/' + articleTitle.value).once('value').then(function(snapshot) {
+				header.innerHTML = articleTitle.value;
+				body.innerHTML = snapshot.val().content;
+			});
+		}
 	}
 
 	function saveText( event ) {
@@ -179,7 +202,7 @@ ZenPen.ui = (function() {
 			document.querySelector('.saveoverlay h1').style.color = '#FC1E1E';
 		}
 	}
-	
+
 	/* Allows the user to press enter to tab from the title */
 	function onHeaderKeyPress( event ) {
 
@@ -191,10 +214,10 @@ ZenPen.ui = (function() {
 
 	/* Allows the user to press enter to tab from the word count modal */
 	function onWordCountKeyUp( event ) {
-		
+
 		if ( event.keyCode === 13 ) {
 			event.preventDefault();
-			
+
 			setWordCount( parseInt(this.value) );
 
 			removeOverlay();
@@ -222,7 +245,7 @@ ZenPen.ui = (function() {
 			wordCountValue = 0;
 			wordCounter.className = "word-counter";
 		}
-		
+
 		saveState();
 	}
 
@@ -247,35 +270,35 @@ ZenPen.ui = (function() {
 	}
 
 	function selectFormat( e ) {
-		
+
 		if ( document.querySelectorAll('span.activesave').length > 0 ) {
 			document.querySelector('span.activesave').className = '';
 		}
-		
+
 		document.querySelector('.saveoverlay h1').style.cssText = '';
-		
+
 		var targ;
 		if (!e) var e = window.event;
 		if (e.target) targ = e.target;
 		else if (e.srcElement) targ = e.srcElement;
-		
+
 		// defeat Safari bug
 		if (targ.nodeType == 3) {
 			targ = targ.parentNode;
 		}
-			
+
 		targ.className ='activesave';
-		
+
 		saveFormat = targ.getAttribute('data-format');
-		
+
 		var header = document.querySelector('header.header');
 		var headerText = header.innerHTML.replace(/(\r\n|\n|\r)/gm,"") + "\n";
-		
+
 		var body = document.querySelector('article.content');
 		var bodyText = body.innerHTML;
-			
+
 		textToWrite = formatText(saveFormat,headerText,bodyText);
-		
+
 		var textArea = document.querySelector('.hiddentextbox');
 		textArea.value = textToWrite;
 		textArea.focus();
@@ -284,7 +307,7 @@ ZenPen.ui = (function() {
 	}
 
 	function formatText( type, header, body ) {
-		
+
 		var text;
 		switch( type ) {
 
@@ -298,9 +321,9 @@ ZenPen.ui = (function() {
 				header = header.replace(/\t/g, '');
 				header = header.replace(/\n$/, '');
 				header = "#" + header + "#";
-			
+
 				text = body.replace(/\t/g, '');
-			
+
 				text = text.replace(/<b>|<\/b>/g,"**")
 					.replace(/\r\n+|\r+|\n+|\t+/ig,"")
 					.replace(/<i>|<\/i>/g,"_")
@@ -308,43 +331,43 @@ ZenPen.ui = (function() {
 					.replace(/<\/blockquote>/g,"")
 					.replace(/<p>|<\/p>/gi,"\n")
 					.replace(/<br>/g,"\n");
-				
+
 				var links = text.match(/<a href="(.+)">(.+)<\/a>/gi);
-				
+
                                 if (links !== null) {
                                         for ( var i = 0; i<links.length; i++ ) {
                                                 var tmpparent = document.createElement('div');
                                                 tmpparent.innerHTML = links[i];
-                                                
+
                                                 var tmp = tmpparent.firstChild;
-                                                
+
                                                 var href = tmp.getAttribute('href');
                                                 var linktext = tmp.textContent || tmp.innerText || "";
-                                                
+
                                                 text = text.replace(links[i],'['+linktext+']('+href+')');
                                         }
                                 }
-				
+
 				text = header +"\n\n"+ text;
 			break;
 
 			case 'plain':
 				header = header.replace(/\t/g, '');
-			
+
 				var tmp = document.createElement('div');
 				tmp.innerHTML = body;
 				text = tmp.textContent || tmp.innerText || "";
-				
+
 				text = text.replace(/\t/g, '')
 					.replace(/\n{3}/g,"\n")
 					.replace(/\n/,""); //replace the opening line break
-				
+
 				text = header + text;
 			break;
 			default:
 			break;
 		}
-		
+
 		return text;
 	}
 
@@ -356,12 +379,12 @@ ZenPen.ui = (function() {
 	}
 
 	function removeOverlay() {
-		
+
 		overlay.style.display = "none";
 		wordCountBox.style.display = "none";
 		descriptionModal.style.display = "none";
 		saveModal.style.display = "none";
-		
+
 		if ( document.querySelectorAll('span.activesave' ).length > 0) {
 			document.querySelector('span.activesave').className = '';
 		}

@@ -54,7 +54,7 @@ ZenPen.editor = (function() {
 				checkTextHighlighting( event );
 			}, 1);
 		};
-		
+
 		// Window bindings
 		window.addEventListener( 'resize', function( event ) {
 			updateBubblePosition();
@@ -136,12 +136,12 @@ ZenPen.editor = (function() {
 
 		lastType = selection.isCollapsed;
 	}
-	
+
 	function updateBubblePosition() {
 		var selection = window.getSelection();
 		var range = selection.getRangeAt(0);
 		var boundary = range.getBoundingClientRect();
-		
+
 		textOptions.style.top = boundary.top - 5 + window.pageYOffset + "px";
 		textOptions.style.left = (boundary.left + boundary.right)/2 + "px";
 	}
@@ -221,9 +221,15 @@ ZenPen.editor = (function() {
 	}
 
 	function saveState( event ) {
-		
+
 		localStorage[ 'header' ] = headerField.innerHTML;
 		localStorage[ 'content' ] = contentField.innerHTML;
+		if (firebase){
+		 	firebase.database().ref('articles/' + headerField.innerHTML).set({
+		    title: headerField.innerHTML,
+		    content: contentField.innerHTML
+		  });
+		}
 	}
 
 	function loadState() {
@@ -330,12 +336,12 @@ ZenPen.editor = (function() {
 		document.execCommand( 'unlink', false );
 
 		if (url !== "") {
-		
+
 			// Insert HTTP if it doesn't exist.
 			if ( !url.match("^(http|https)://") ) {
 
-				url = "http://" + url;	
-			} 
+				url = "http://" + url;
+			}
 
 			document.execCommand( 'createLink', false, url );
 		}
@@ -347,7 +353,7 @@ ZenPen.editor = (function() {
 	}
 
 	function getWordCount() {
-		
+
 		var text = ZenPen.util.getText( contentField );
 
 		if ( text === "" ) {
