@@ -9,7 +9,7 @@ ZenPen.editor = (function() {
 	var textOptions, optionsBox, boldButton, italicButton, quoteButton, urlButton, urlInput;
 
 	var composing;
-
+	var token = 'bearywriter';
 	function init() {
 
 		composing = false;
@@ -228,6 +228,7 @@ ZenPen.editor = (function() {
 			firebase.auth()
 		 	firebase.database().ref('articles/' + headerField.innerHTML).set({
 		    title: headerField.innerHTML,
+		    token: token,
 		    content: contentField.innerHTML
 		  });
 		}
