@@ -186,6 +186,7 @@ ZenPen.ui = (function() {
 					var bodyField = document.querySelector('article.content');
 					header.innerHTML = articleTitle.value;
 					bodyField.innerHTML = snapshot.val().content;
+					removeOverlay();
 				}else{
 					alert(articleTitle.value + " not found")
 				}
@@ -390,7 +391,7 @@ ZenPen.ui = (function() {
 		wordCountBox.style.display = "none";
 		descriptionModal.style.display = "none";
 		saveModal.style.display = "none";
-
+		loadModal.style.display = "none"
 		if ( document.querySelectorAll('span.activesave' ).length > 0) {
 			document.querySelector('span.activesave').className = '';
 		}
