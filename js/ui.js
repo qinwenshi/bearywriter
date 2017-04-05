@@ -202,7 +202,7 @@ ZenPen.ui = (function() {
 			/* remove tabs and line breaks from header */
 			var headerText = header.innerHTML.replace(/(\t|\n|\r)/gm,"");
 			if (headerText === "") {
-			    headerText = "ZenPen";
+			    headerText = "Beary Writer";
 			}
 			saveAs(blob, headerText + '.txt');
 		} else {
