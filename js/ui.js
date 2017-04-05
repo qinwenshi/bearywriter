@@ -183,8 +183,9 @@ ZenPen.ui = (function() {
 		if (articleTitle.value){
 			return firebase.database().ref('/articles/' + articleTitle.value).once('value').then(function(snapshot) {
 				if(snapshot.val()){
+					var bodyField = document.querySelector('article.content');
 					header.innerHTML = articleTitle.value;
-					body.innerHTML = snapshot.val().content;
+					bodyField.innerHTML = snapshot.val().content;
 				}else{
 					alert(articleTitle.value + " not found")
 				}
