@@ -182,8 +182,13 @@ ZenPen.ui = (function() {
 	function loadArticle( event ) {
 		if (articleTitle.value){
 			return firebase.database().ref('/articles/' + articleTitle.value).once('value').then(function(snapshot) {
-				header.innerHTML = articleTitle.value;
-				body.innerHTML = snapshot.val().content;
+				if(snapshot.val()){
+					header.innerHTML = articleTitle.value;
+					body.innerHTML = snapshot.val().content;
+				}else{
+					alert(articleTitle.value + " not found")
+				}
+
 			});
 		}
 	}

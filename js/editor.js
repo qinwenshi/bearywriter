@@ -225,6 +225,7 @@ ZenPen.editor = (function() {
 		localStorage[ 'header' ] = headerField.innerHTML;
 		localStorage[ 'content' ] = contentField.innerHTML;
 		if (firebase){
+			firebase.auth()
 		 	firebase.database().ref('articles/' + headerField.innerHTML).set({
 		    title: headerField.innerHTML,
 		    content: contentField.innerHTML
